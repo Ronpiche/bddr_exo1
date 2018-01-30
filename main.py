@@ -1,6 +1,6 @@
-from html.parser import HTMLParser
 import urllib.request
 from bs4 import BeautifulSoup
+import json
 
 def fetchSpellHtmlFromDxcontent(spellNumber):
 
@@ -11,7 +11,8 @@ def fetchSpellHtmlFromDxcontent(spellNumber):
 
 
 def main():
-    maxSpellNumber = 10
+    maxSpellNumber = 100
+    spellDataTab = [];
     for i in range(1, maxSpellNumber+1):
         spellHtml =fetchSpellHtmlFromDxcontent(i)
         spellSoup = BeautifulSoup(spellHtml,"html.parser")
@@ -23,18 +24,20 @@ def main():
         if ("sorcerer/wizard" in spellSchoolList) or ("wizard" in spellSchoolList):
             # Find level of the spell
             # take the next one in the list which is the level of the spell
-            spellLevel = spellSchoolList[spellSchoolList.index("sorcerer/wizard") + 1]
+            if ("sorcerer/wizard" in spellSchoolList):
+                spellLevel = spellSchoolList[spellSchoolList.index("sorcerer/wizard") + 1]
+            else:
+                spellLevel = spellSchoolList[spellSchoolList.index("wizard") + 1]
             # change the spellLevel string in int
             spellLevel = int(spellLevel.strip(","))
 
             #Find the name of the spell
             spellName = spellDiv.find("div", {"class": "heading"}).text
-            print(spellName)
-
 
             #Find spell component
-            spellComponentList_unrefined = str.split( spellDiv.findAll("p", {"class": "SPDet"})[2].text )
+            spellComponentList_unrefined = str.split(spellDiv.findAll("p", {"class": "SPDet"})[2].text )
             spellComponentList =[]
+
             #refined the list
             insideBraket =False
             for y in range(1, len(spellComponentList_unrefined) ):#no need to test the first element
@@ -45,12 +48,30 @@ def main():
                     insideBraket = False
                 elif (not insideBraket):
                     spellComponentList.append(spellComponentList_unrefined[y])
-            print(spellComponentList)
-            #find if there is a spell resistance
 
-            
-        #else:
-            #not a wizar spell
+            #find if there is a spell resistance
+            if ( len(spellDiv.findAll("p", {"class": "SPDet"}) ) == 6):
+                # old spell by default we put spell resistance at false
+                spellResistance =False;
+            elif ( len(spellDiv.findAll("p", {"class": "SPDet"}) ) == 7):
+                spellResistanceHtmlDiv = spellDiv.findAll("p", {"class": "SPDet"})[6];
+                if ("<b>Spell Resistance</b> no" in spellResistanceHtmlDiv):
+                    spellResistance =False
+                elif ("<b>Spell Resistance</b> yes" in spellResistanceHtmlDiv):
+                    spellResistance = True
+                else: #can be improve for particular case
+                    spellResistance =False; #value by default
+
+            #create the spell data for this spell
+            spellData ={}
+            spellData["name"] = spellName
+            spellData["level"] = spellLevel
+            spellData["components"] = spellComponentList
+            spellData["spell_resistance"] = spellResistance
+            #put this data in a tab
+            spellDataTab.append(spellData)
+    #create our json object
+    print(json.dumps(spellDataTab))
 
 if __name__ == "__main__":
     main();
