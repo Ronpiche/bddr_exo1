@@ -1,6 +1,7 @@
 import urllib.request
 from bs4 import BeautifulSoup
 import json
+import os
 
 def fetchSpellHtmlFromDxcontent(spellNumber):
 
@@ -71,7 +72,17 @@ def main():
             #put this data in a tab
             spellDataTab.append(spellData)
     #create our json object
-    print(json.dumps(spellDataTab))
+    jsonData = json.dumps(spellDataTab)
+    # Writing JSON file
+
+    # delete previous file if exist
+    try:
+        os.remove('jsonSpellData.json')
+    except OSError:
+        pass
+    #create and write
+    with open('jsonSpellData.json', 'w') as f:
+        json.dump(jsonData, f)
 
 if __name__ == "__main__":
     main();
