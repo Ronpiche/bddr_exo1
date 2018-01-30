@@ -12,7 +12,7 @@ def fetchSpellHtmlFromDxcontent(spellNumber):
 
 
 def main():
-    maxSpellNumber = 100
+    maxSpellNumber = 10
     spellDataTab = [];
     for i in range(1, maxSpellNumber+1):
         spellHtml =fetchSpellHtmlFromDxcontent(i)
@@ -82,7 +82,7 @@ def main():
         pass
     #create and write
     with open('jsonSpellData.json', 'w') as f:
-        json.dump(jsonData, f)
+        json.dump(spellDataTab, f)
 
 if __name__ == "__main__":
     main();
